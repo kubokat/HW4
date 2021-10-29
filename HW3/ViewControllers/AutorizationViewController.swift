@@ -7,13 +7,12 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class AutorizationViewController: UIViewController {
 
     @IBOutlet var userName: UITextField!
     @IBOutlet var password: UITextField!
     
-    let savedUserName = "UserName"
-    let savedPassword = "password"
+    let user = UserModel.getUser()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,17 +20,28 @@ class ViewController: UIViewController {
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
-        if (savedUserName != userName.text) {
+        if (user.userName != userName.text) {
             showAlert(title: "Wrong data", message: "Incorrect username or password", field: userName)
         }
         
-        if (savedPassword != password.text) {
+        if (user.password != password.text) {
             showAlert(title: "Wrong data", message: "Incorrect username or password", field: password)
         }
         
-        guard let vc = segue.destination as? WelcomeViewController else { return }
+        let tabBarController = segue.destination as! UITabBarController
         
-        vc.userNameValue = userName.text
+        if let viewControllers = tabBarController.viewControllers {
+            for viewController in viewControllers {
+                if let vc = viewController as? WelcomeViewController {
+                    (vc.userNameValue, vc.userAgeValue, vc.userPhoneValue) = (user.name, user.age, user.phone)
+
+                } else if let vc = viewController as? UINavigationController {
+                    let moreVC = vc.topViewController as! MoreViewController
+                    
+                    (moreVC.userDescription, moreVC.userPhoto) = (user.userDescription, user.photo)
+                }
+            }
+        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -45,15 +55,15 @@ class ViewController: UIViewController {
     
     @IBAction func forgot(_ sender: UIButton) {
         if (sender.tag == 0) {
-            showAlert(title: "Forgot", message: "You user name: \(savedUserName)")
+            showAlert(title: "Forgot", message: "You user name: \(user.userName)")
         } else {
-            showAlert(title: "Forgot", message: "You password: \(savedPassword)")
+            showAlert(title: "Forgot", message: "You password: \(user.password)")
         }
     }
     
 }
 
-extension ViewController {
+extension AutorizationViewController {
     private func showAlert(title: String, message: String, field: UITextField? = nil) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let okAction = UIAlertAction(title: "OK", style: .default) { _ in
